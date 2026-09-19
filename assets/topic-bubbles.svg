@@ -1,8 +1,8 @@
 <svg
 xmlns="http://www.w3.org/2000/svg"
-width="900"
-height="650"
-viewBox="0 0 900 650">
+width="1000"
+height="700"
+viewBox="0 0 1000 700">
 
 <rect
 width="100%"
@@ -12,13 +12,25 @@ fill="white"/>
 <style>
 
 .bubble {
-    fill: #eeeeee;
+    fill: #f0f0f0;
+    stroke: #d9d9d9;
+    stroke-width: 1;
 }
 
 .topic {
     fill: #008000;
     font-family: Arial, sans-serif;
     font-size: 15px;
+    font-weight: 500;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+.count {
+    fill: #008000;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
     text-anchor: middle;
     dominant-baseline: middle;
 }
@@ -27,238 +39,357 @@ fill="white"/>
 
 <circle
 class="bubble"
-cx="560.36"
-cy="314.31"
-r="110.00"/>
+cx="617.15"
+cy="335.62"
+r="120.00"/>
 
 <text
 class="topic"
-x="560.36"
-y="314.31">
+x="617.15"
+y="327.62">
 Array
 </text>
 
+<text
+class="count"
+x="617.15"
+y="355.62">
+32
+</text>
+
 <circle
 class="bubble"
-cx="355.36"
-cy="399.23"
-r="74.77"/>
+cx="399.00"
+cy="431.48"
+r="81.49"/>
 
 <text
 class="topic"
-x="355.36"
-y="399.23">
+x="399.00"
+y="423.48">
 Two Pointers
 </text>
 
+<text
+class="count"
+x="399.00"
+y="451.48">
+9
+</text>
+
 <circle
 class="bubble"
-cx="432.88"
-cy="172.75"
-r="72.50"/>
+cx="461.89"
+cy="200.23"
+r="79.00"/>
 
 <text
 class="topic"
-x="432.88"
-y="172.75">
+x="461.89"
+y="192.23">
 Math
 </text>
 
+<text
+class="count"
+x="461.89"
+y="220.23">
+8
+</text>
+
 <circle
 class="bubble"
-cx="532.79"
-cy="500.36"
-r="70.08"/>
+cx="582.30"
+cy="535.96"
+r="76.35"/>
 
 <text
 class="topic"
-x="532.79"
-y="500.36">
+x="582.30"
+y="527.96">
 Sorting
 </text>
 
+<text
+class="count"
+x="582.30"
+y="555.96">
+7
+</text>
+
 <circle
 class="bubble"
-cx="245.18"
-cy="288.77"
-r="67.48"/>
+cx="289.96"
+cy="311.67"
+r="73.51"/>
 
 <text
 class="topic"
-x="245.18"
-y="288.77">
+x="289.96"
+y="303.67">
 Prefix Sum
 </text>
 
-<circle
-class="bubble"
-cx="672.77"
-cy="178.93"
-r="57.96"/>
-
 <text
-class="topic"
-x="672.77"
-y="178.93">
-Simulation
+class="count"
+x="289.96"
+y="331.67">
+6
 </text>
 
 <circle
 class="bubble"
-cx="374.20"
-cy="586.25"
-r="53.75"/>
+cx="739.86"
+cy="190.42"
+r="63.11"/>
 
 <text
 class="topic"
-x="374.20"
-y="577.75">
+x="739.86"
+y="182.42">
+Simulation
+</text>
+
+<text
+class="count"
+x="739.86"
+y="210.42">
+3
+</text>
+
+<circle
+class="bubble"
+cx="420.05"
+cy="626.50"
+r="58.50"/>
+
+<text
+class="topic"
+x="420.05"
+y="610.50">
 Dynamic
 </text>
 
 <text
 class="topic"
-x="374.20"
-y="594.75">
+x="420.05"
+y="627.50">
 Programming
+</text>
+
+<text
+class="count"
+x="420.05"
+y="646.50">
+2
 </text>
 
 <circle
 class="bubble"
-cx="264.33"
-cy="67.26"
-r="53.75"/>
+cx="304.80"
+cy="77.68"
+r="58.50"/>
 
 <text
 class="topic"
-x="264.33"
-y="58.76">
+x="304.80"
+y="61.68">
 Divide and
 </text>
 
 <text
 class="topic"
-x="264.33"
-y="75.76">
+x="304.80"
+y="78.68">
 Conquer
 </text>
 
+<text
+class="count"
+x="304.80"
+y="97.68">
+2
+</text>
+
 <circle
 class="bubble"
-cx="803.19"
-cy="453.97"
-r="48.26"/>
+cx="879.49"
+cy="488.58"
+r="52.50"/>
 
 <text
 class="topic"
-x="803.19"
-y="453.97">
+x="879.49"
+y="480.58">
 Greedy
 </text>
 
-<circle
-class="bubble"
-cx="63.63"
-cy="484.50"
-r="48.26"/>
-
 <text
-class="topic"
-x="63.63"
-y="484.50">
-Bit Manipulation
+class="count"
+x="879.49"
+y="508.58">
+1
 </text>
 
 <circle
 class="bubble"
-cx="644.96"
-cy="58.26"
-r="48.26"/>
+cx="82.17"
+cy="522.30"
+r="52.50"/>
 
 <text
 class="topic"
-x="644.96"
-y="58.26">
+x="82.17"
+y="506.30">
+Bit
+</text>
+
+<text
+class="topic"
+x="82.17"
+y="523.30">
+Manipulation
+</text>
+
+<text
+class="count"
+x="82.17"
+y="542.30">
+1
+</text>
+
+<circle
+class="bubble"
+cx="711.91"
+cy="67.50"
+r="52.50"/>
+
+<text
+class="topic"
+x="711.91"
+y="59.50">
 Binary Search
 </text>
 
+<text
+class="count"
+x="711.91"
+y="87.50">
+1
+</text>
+
 <circle
 class="bubble"
-cx="620.02"
-cy="591.74"
-r="48.26"/>
+cx="677.88"
+cy="632.50"
+r="52.50"/>
 
 <text
 class="topic"
-x="620.02"
-y="591.74">
+x="677.88"
+y="624.50">
 Hash Table
 </text>
 
-<circle
-class="bubble"
-cx="58.26"
-cy="58.26"
-r="48.26"/>
-
 <text
-class="topic"
-x="58.26"
-y="58.26">
-Counting
+class="count"
+x="677.88"
+y="652.50">
+1
 </text>
 
 <circle
 class="bubble"
-cx="841.74"
-cy="199.15"
-r="48.26"/>
+cx="67.50"
+cy="67.50"
+r="52.50"/>
 
 <text
 class="topic"
-x="841.74"
-y="182.15">
+x="67.50"
+y="59.50">
+Counting
+</text>
+
+<text
+class="count"
+x="67.50"
+y="87.50">
+1
+</text>
+
+<circle
+class="bubble"
+cx="932.50"
+cy="211.69"
+r="52.50"/>
+
+<text
+class="topic"
+x="932.50"
+y="187.69">
 Boyer–Moore
 </text>
 
 <text
 class="topic"
-x="841.74"
-y="199.15">
+x="932.50"
+y="204.69">
 Majority Vote
 </text>
 
 <text
 class="topic"
-x="841.74"
-y="216.15">
+x="932.50"
+y="221.69">
 Algorithm
 </text>
 
-<circle
-class="bubble"
-cx="88.84"
-cy="591.74"
-r="48.26"/>
-
 <text
-class="topic"
-x="88.84"
-y="591.74">
-String
+class="count"
+x="932.50"
+y="231.69">
+1
 </text>
 
 <circle
 class="bubble"
-cx="373.97"
-cy="58.26"
-r="48.26"/>
+cx="102.07"
+cy="632.50"
+r="52.50"/>
 
 <text
 class="topic"
-x="373.97"
-y="58.26">
+x="102.07"
+y="624.50">
+String
+</text>
+
+<text
+class="count"
+x="102.07"
+y="652.50">
+1
+</text>
+
+<circle
+class="bubble"
+cx="422.36"
+cy="67.50"
+r="52.50"/>
+
+<text
+class="topic"
+x="422.36"
+y="59.50">
 Recursion
+</text>
+
+<text
+class="count"
+x="422.36"
+y="87.50">
+1
 </text>
 
 </svg>
