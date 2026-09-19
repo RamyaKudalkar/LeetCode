@@ -188,13 +188,31 @@ dashboard = f"""### 🎯 Total Solved
 
 ### 🧠 Topics
 
-| Topic | Problems |
-|-------|---------:|
 """
 
-for topic, count in topic_count.most_common():
+# Create LeetCode-style topic bubbles
+topics = topic_count.most_common()
 
-    dashboard += f"| {topic} | {count} |\n"
+for i, (topic, count) in enumerate(topics):
+
+    # Replace characters that can interfere with badge URLs
+    topic_name = (
+        topic
+        .replace("-", "--")
+        .replace(" ", "_")
+        .replace("–", "--")
+    )
+
+    dashboard += (
+        f'<img src="https://img.shields.io/badge/'
+        f'{topic_name}-{count}-blue?style=for-the-badge" /> '
+    )
+
+    # Four bubbles per line
+    if (i + 1) % 4 == 0:
+        dashboard += "<br>\n"
+
+dashboard += "\n"
 
 
 # --------------------------------------------------
@@ -226,7 +244,6 @@ new_readme = (
     readme[:start_content]
     + "\n\n"
     + dashboard
-    + "\n"
     + readme[end:]
 )
 
