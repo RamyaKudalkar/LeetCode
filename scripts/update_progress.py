@@ -1,10 +1,19 @@
 import os
 import re
 import time
+import math
+import html
 import requests
 from collections import Counter
 
-BASE_FOLDER = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# ==================================================
+# SETTINGS
+# ==================================================
+
+BASE_FOLDER = os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))
+)
 
 LEETCODE_URL = "https://leetcode.com/graphql"
 
@@ -14,13 +23,27 @@ HEADERS = {
 }
 
 
+# ==================================================
+# GET LEETCODE SLUG FROM README
+# ==================================================
+
 def get_slug_from_readme(folder):
-    readme_path = os.path.join(BASE_FOLDER, folder, "README.md")
+
+    readme_path = os.path.join(
+        BASE_FOLDER,
+        folder,
+        "README.md"
+    )
 
     if not os.path.exists(readme_path):
         return None
 
-    with open(readme_path, "r", encoding="utf-8") as file:
+    with open(
+        readme_path,
+        "r",
+        encoding="utf-8"
+    ) as file:
+
         content = file.read()
 
     match = re.search(
@@ -34,8 +57,11 @@ def get_slug_from_readme(folder):
     return None
 
 
+# ==================================================
+# GET PROBLEM INFORMATION FROM LEETCODE
+# ==================================================
+
 def get_problem_info(slug):
-    """Get problem information with automatic retries."""
 
     query = """
     query($titleSlug: String!) {
@@ -49,7 +75,9 @@ def get_problem_info(slug):
     }
     """
 
-    # Try up to 3 times if LeetCode temporarily times out
+    # Try up to 3 times in case LeetCode temporarily
+    # times out.
+
     for attempt in range(3):
 
         try:
@@ -70,7 +98,11 @@ def get_problem_info(slug):
 
             data = response.json()
 
-            question = data.get("data", {}).get("question")
+            question = (
+                data
+                .get("data", {})
+                .get("question")
+            )
 
             if question:
                 return question
@@ -78,7 +110,8 @@ def get_problem_info(slug):
         except requests.RequestException as e:
 
             print(
-                f"⚠️ Attempt {attempt + 1}/3 failed for {slug}: {e}"
+                f"⚠️ Attempt {attempt + 1}/3 "
+                f"failed for {slug}: {e}"
             )
 
             if attempt < 2:
@@ -87,92 +120,486 @@ def get_problem_info(slug):
     return None
 
 
-# --------------------------------------------------
-# Find all LeetCode problem folders
-# --------------------------------------------------
+# ==================================================
+# GENERATE LEETCODE-STYLE TOPIC BUBBLE CHART
+# ==================================================
+
+def generate_topic_bubbles(topic_count):
+
+    assets_folder = os.path.join(
+        BASE_FOLDER,
+        "assets"
+    )
+
+    os.makedirs(
+        assets_folder,
+        exist_ok=True
+    )
+
+    svg_path = os.path.join(
+        assets_folder,
+        "topic-bubbles.svg"
+    )
+
+    topics = topic_count.most_common()
+
+    if not topics:
+        return
+
+    # ------------------------------------------------
+    # SVG SIZE
+    # ------------------------------------------------
+
+    width = 900
+    height = 650
+
+    # ------------------------------------------------
+    # CALCULATE BUBBLE SIZE
+    # ------------------------------------------------
+
+    max_count = max(
+        topic_count.values()
+    )
+
+    bubbles = []
+
+    for topic, count in topics:
+
+        # Larger count = larger bubble.
+        #
+        # Square-root scaling prevents the largest
+        # topics from becoming ridiculously huge.
+
+        radius = (
+            35
+            + 75 * math.sqrt(
+                count / max_count
+            )
+        )
+
+        bubbles.append({
+            "topic": topic,
+            "count": count,
+            "radius": radius,
+            "x": width / 2,
+            "y": height / 2
+        })
+
+    # ------------------------------------------------
+    # INITIAL POSITIONS
+    # ------------------------------------------------
+
+    for i, bubble in enumerate(bubbles):
+
+        angle = i * 2.39996
+
+        distance = (
+            40
+            + i * 42
+        )
+
+        bubble["x"] = (
+            width / 2
+            + math.cos(angle) * distance
+        )
+
+        bubble["y"] = (
+            height / 2
+            + math.sin(angle) * distance
+        )
+
+    # ------------------------------------------------
+    # PACK THE BUBBLES
+    # ------------------------------------------------
+
+    for _ in range(500):
+
+        moved = False
+
+        for i in range(len(bubbles)):
+
+            a = bubbles[i]
+
+            for j in range(i + 1, len(bubbles)):
+
+                b = bubbles[j]
+
+                dx = (
+                    b["x"]
+                    - a["x"]
+                )
+
+                dy = (
+                    b["y"]
+                    - a["y"]
+                )
+
+                distance = math.sqrt(
+                    dx * dx
+                    + dy * dy
+                )
+
+                minimum_distance = (
+                    a["radius"]
+                    + b["radius"]
+                    + 8
+                )
+
+                if distance < minimum_distance:
+
+                    if distance == 0:
+
+                        dx = 1
+                        dy = 0
+                        distance = 1
+
+                    push = (
+                        minimum_distance
+                        - distance
+                    ) / 2
+
+                    dx /= distance
+                    dy /= distance
+
+                    a["x"] -= (
+                        dx * push
+                    )
+
+                    a["y"] -= (
+                        dy * push
+                    )
+
+                    b["x"] += (
+                        dx * push
+                    )
+
+                    b["y"] += (
+                        dy * push
+                    )
+
+                    moved = True
+
+        # ------------------------------------------------
+        # KEEP BUBBLES INSIDE THE CANVAS
+        # ------------------------------------------------
+
+        for bubble in bubbles:
+
+            r = bubble["radius"]
+
+            bubble["x"] = max(
+                r + 10,
+                min(
+                    width - r - 10,
+                    bubble["x"]
+                )
+            )
+
+            bubble["y"] = max(
+                r + 10,
+                min(
+                    height - r - 10,
+                    bubble["y"]
+                )
+            )
+
+        if not moved:
+            break
+
+    # ==================================================
+    # CREATE SVG
+    # ==================================================
+
+    svg = f'''<svg
+xmlns="http://www.w3.org/2000/svg"
+width="{width}"
+height="{height}"
+viewBox="0 0 {width} {height}">
+
+<rect
+width="100%"
+height="100%"
+fill="white"/>
+
+<style>
+
+.bubble {{
+    fill: #eeeeee;
+}}
+
+.topic {{
+    fill: #008000;
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}}
+
+</style>
+'''
+
+    # ==================================================
+    # DRAW EACH BUBBLE
+    # ==================================================
+
+    for bubble in bubbles:
+
+        x = bubble["x"]
+        y = bubble["y"]
+        r = bubble["radius"]
+
+        topic = bubble["topic"]
+
+        # ------------------------------------------------
+        # Split long topic names into multiple lines
+        # ------------------------------------------------
+
+        words = topic.split()
+
+        lines = []
+
+        current = ""
+
+        for word in words:
+
+            test = (
+                current
+                + " "
+                + word
+            ).strip()
+
+            if len(test) <= 16:
+
+                current = test
+
+            else:
+
+                if current:
+                    lines.append(current)
+
+                current = word
+
+        if current:
+            lines.append(current)
+
+        # ------------------------------------------------
+        # Circle
+        # ------------------------------------------------
+
+        svg += f'''
+<circle
+class="bubble"
+cx="{x:.2f}"
+cy="{y:.2f}"
+r="{r:.2f}"/>
+'''
+
+        # ------------------------------------------------
+        # Topic text
+        # ------------------------------------------------
+
+        line_height = 17
+
+        start_y = (
+            y
+            - (
+                (len(lines) - 1)
+                * line_height
+                / 2
+            )
+        )
+
+        for index, line in enumerate(lines):
+
+            svg += f'''
+<text
+class="topic"
+x="{x:.2f}"
+y="{start_y + index * line_height:.2f}">
+{html.escape(line)}
+</text>
+'''
+
+    svg += """
+</svg>
+"""
+
+    # ==================================================
+    # SAVE SVG
+    # ==================================================
+
+    with open(
+        svg_path,
+        "w",
+        encoding="utf-8"
+    ) as file:
+
+        file.write(svg)
+
+    print(
+        f"✓ Topic bubble chart generated: "
+        f"{svg_path}"
+    )
+
+
+# ==================================================
+# FIND ALL LEETCODE PROBLEM FOLDERS
+# ==================================================
 
 problem_folders = []
 
 for item in os.listdir(BASE_FOLDER):
 
-    path = os.path.join(BASE_FOLDER, item)
+    path = os.path.join(
+        BASE_FOLDER,
+        item
+    )
 
-    if os.path.isdir(path) and item[0].isdigit():
+    if (
+        os.path.isdir(path)
+        and item
+        and item[0].isdigit()
+    ):
+
         problem_folders.append(item)
+
 
 problem_folders.sort()
 
 
-# --------------------------------------------------
-# Collect LeetCode information
-# --------------------------------------------------
+# ==================================================
+# COLLECT LEETCODE INFORMATION
+# ==================================================
 
 difficulty_count = Counter()
+
 topic_count = Counter()
 
 solved_problems = []
+
 failed_problems = []
 
-print("Fetching LeetCode information...\n")
+print(
+    "Fetching LeetCode information...\n"
+)
 
 
 for folder in problem_folders:
 
-    slug = get_slug_from_readme(folder)
+    slug = get_slug_from_readme(
+        folder
+    )
 
     if not slug:
-        print(f"⚠️ Could not find slug: {folder}")
+
+        print(
+            f"⚠️ Could not find slug: "
+            f"{folder}"
+        )
+
         failed_problems.append(folder)
+
         continue
 
-    info = get_problem_info(slug)
+    info = get_problem_info(
+        slug
+    )
 
     if not info:
 
-        print(f"❌ Failed after 3 attempts: {slug}")
+        print(
+            f"❌ Failed after 3 attempts: "
+            f"{slug}"
+        )
+
         failed_problems.append(folder)
+
         continue
 
     title = info["title"]
+
     difficulty = info["difficulty"]
-    topics = [tag["name"] for tag in info["topicTags"]]
 
-    solved_problems.append(title)
+    topics = [
+        tag["name"]
+        for tag in info["topicTags"]
+    ]
 
-    difficulty_count[difficulty] += 1
+    solved_problems.append(
+        title
+    )
+
+    difficulty_count[
+        difficulty
+    ] += 1
 
     for topic in topics:
-        topic_count[topic] += 1
 
-    print(f"✓ {title}")
+        topic_count[
+            topic
+        ] += 1
+
+    print(
+        f"✓ {title}"
+    )
 
 
-# --------------------------------------------------
-# Stop if any problems failed
-# --------------------------------------------------
+# ==================================================
+# STOP IF SOMETHING FAILED
+# ==================================================
 
 if failed_problems:
 
-    print("\n========================================")
-    print("README WAS NOT UPDATED")
-    print("========================================")
+    print(
+        "\n========================================"
+    )
 
-    print("\nThe following problems could not be fetched:")
+    print(
+        "README WAS NOT UPDATED"
+    )
+
+    print(
+        "========================================"
+    )
+
+    print(
+        "\nThe following problems "
+        "could not be fetched:"
+    )
 
     for problem in failed_problems:
-        print(f"- {problem}")
 
-    print("\nPlease run the script again.")
-    print("Your existing README was left unchanged.")
+        print(
+            f"- {problem}"
+        )
+
+    print(
+        "\nPlease run the script again."
+    )
+
+    print(
+        "Your existing README was left unchanged."
+    )
 
     raise SystemExit(1)
 
 
-# --------------------------------------------------
-# Create README dashboard
-# --------------------------------------------------
+# ==================================================
+# GENERATE TOPIC BUBBLE CHART
+# ==================================================
 
-total_solved = len(problem_folders)
+generate_topic_bubbles(
+    topic_count
+)
+
+
+# ==================================================
+# CREATE README DASHBOARD
+# ==================================================
+
+total_solved = len(
+    problem_folders
+)
 
 dashboard = f"""### 🎯 Total Solved
 
@@ -188,57 +615,61 @@ dashboard = f"""### 🎯 Total Solved
 
 ### 🧠 Topics
 
+![LeetCode Topics](assets/topic-bubbles.svg)
+
 """
 
-# Create LeetCode-style topic bubbles
-topics = topic_count.most_common()
 
-for i, (topic, count) in enumerate(topics):
+# ==================================================
+# UPDATE README
+# ==================================================
 
-    # Replace characters that can interfere with badge URLs
-    topic_name = (
-        topic
-        .replace("-", "--")
-        .replace(" ", "_")
-        .replace("–", "--")
-    )
+readme_path = os.path.join(
+    BASE_FOLDER,
+    "README.md"
+)
 
-    dashboard += (
-        f'<img src="https://img.shields.io/badge/'
-        f'{topic_name}-{count}-blue?style=for-the-badge" /> '
-    )
+with open(
+    readme_path,
+    "r",
+    encoding="utf-8"
+) as file:
 
-    # Four bubbles per line
-    if (i + 1) % 4 == 0:
-        dashboard += "<br>\n"
-
-dashboard += "\n"
-
-
-# --------------------------------------------------
-# Update README
-# --------------------------------------------------
-
-readme_path = os.path.join(BASE_FOLDER, "README.md")
-
-with open(readme_path, "r", encoding="utf-8") as file:
     readme = file.read()
 
 
-start_marker = "<!-- LEETCODE_PROGRESS_START -->"
-end_marker = "<!-- LEETCODE_PROGRESS_END -->"
+start_marker = (
+    "<!-- LEETCODE_PROGRESS_START -->"
+)
 
-start = readme.find(start_marker)
-end = readme.find(end_marker)
+end_marker = (
+    "<!-- LEETCODE_PROGRESS_END -->"
+)
+
+
+start = readme.find(
+    start_marker
+)
+
+end = readme.find(
+    end_marker
+)
 
 
 if start == -1 or end == -1:
 
-    print("\n⚠️ README markers were not found.")
+    print(
+        "\n⚠️ README markers were not found."
+    )
+
     raise SystemExit(1)
 
 
-start_content = start + len(start_marker)
+start_content = (
+    start
+    + len(start_marker)
+)
+
 
 new_readme = (
     readme[:start_content]
@@ -247,21 +678,51 @@ new_readme = (
     + readme[end:]
 )
 
-with open(readme_path, "w", encoding="utf-8") as file:
-    file.write(new_readme)
+
+with open(
+    readme_path,
+    "w",
+    encoding="utf-8"
+) as file:
+
+    file.write(
+        new_readme
+    )
 
 
-# --------------------------------------------------
-# Final result
-# --------------------------------------------------
+# ==================================================
+# FINAL RESULT
+# ==================================================
 
-print("\n========================================")
-print("README UPDATED SUCCESSFULLY!")
-print("========================================")
+print(
+    "\n========================================"
+)
 
-print(f"\nTotal Solved: {total_solved}")
-print(f"Easy: {difficulty_count['Easy']}")
-print(f"Medium: {difficulty_count['Medium']}")
-print(f"Hard: {difficulty_count['Hard']}")
+print(
+    "README UPDATED SUCCESSFULLY!"
+)
 
-print("\nYour README now contains the progress dashboard! 🚀")
+print(
+    "========================================"
+)
+
+print(
+    f"\nTotal Solved: {total_solved}"
+)
+
+print(
+    f"Easy: {difficulty_count['Easy']}"
+)
+
+print(
+    f"Medium: {difficulty_count['Medium']}"
+)
+
+print(
+    f"Hard: {difficulty_count['Hard']}"
+)
+
+print(
+    "\nYour README now contains the "
+    "LeetCode-style topic bubble chart! 🚀"
+)
