@@ -12,17 +12,15 @@ solutions in C++
 
 <!-- LEETCODE_PROGRESS_START -->
 
-## 📊 LeetCode Progress
-
 ### 🎯 Total Solved
 
-**34 Problems**
+**35 Problems**
 
 ### 📈 Difficulty
 
 | Difficulty | Problems |
 |------------|----------:|
-| 🟢 Easy | 29 |
+| 🟢 Easy | 30 |
 | 🟠 Medium | 5 |
 | 🔴 Hard | 0 |
 
@@ -30,14 +28,14 @@ solutions in C++
 
 | Topic | Problems |
 |-------|---------:|
-| Array | 31 |
+| Array | 32 |
 | Two Pointers | 9 |
 | Math | 8 |
 | Sorting | 7 |
 | Prefix Sum | 6 |
+| Simulation | 3 |
 | Dynamic Programming | 2 |
 | Divide and Conquer | 2 |
-| Simulation | 2 |
 | Greedy | 1 |
 | Bit Manipulation | 1 |
 | Binary Search | 1 |
