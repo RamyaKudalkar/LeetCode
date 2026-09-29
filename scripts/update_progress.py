@@ -1,8 +1,6 @@
 import os
 import re
 import time
-import math
-import html
 import requests
 from collections import Counter
 
@@ -46,8 +44,9 @@ def get_slug_from_readme(folder):
         content = file.read()
 
     match = re.search(
-        r"leetcode\.com/problems/([^\"/?]+)",
-        content
+        r"leetcode\.com/problems/([^/?\"\s]+)",
+        content,
+        re.IGNORECASE
     )
 
     if match:
@@ -67,9 +66,6 @@ def get_problem_info(slug):
         question(titleSlug: $titleSlug) {
             title
             difficulty
-            topicTags {
-                name
-            }
         }
     }
     """
@@ -118,370 +114,6 @@ def get_problem_info(slug):
 
 
 # ==================================================
-# GENERATE LEETCODE-STYLE TOPIC BUBBLE CHART
-# ==================================================
-
-def generate_topic_bubbles(topic_count):
-
-    assets_folder = os.path.join(
-        BASE_FOLDER,
-        "assets"
-    )
-
-    os.makedirs(
-        assets_folder,
-        exist_ok=True
-    )
-
-    svg_path = os.path.join(
-        assets_folder,
-        "topic-bubbles.svg"
-    )
-
-    topics = topic_count.most_common()
-
-    if not topics:
-        return
-
-    # ------------------------------------------------
-    # CANVAS
-    # ------------------------------------------------
-
-    width = 1000
-    height = 700
-
-    # ------------------------------------------------
-    # BUBBLE SIZE
-    # ------------------------------------------------
-
-    max_count = max(
-        topic_count.values()
-    )
-
-    bubbles = []
-
-    for topic, count in topics:
-
-        # Bigger topic count = bigger bubble
-        #
-        # The square-root scaling keeps the bubbles
-        # visually balanced.
-
-        radius = (
-            38
-            + 82 * math.sqrt(
-                count / max_count
-            )
-        )
-
-        bubbles.append({
-            "topic": topic,
-            "count": count,
-            "radius": radius,
-            "x": width / 2,
-            "y": height / 2
-        })
-
-    # ------------------------------------------------
-    # INITIAL POSITIONS
-    # ------------------------------------------------
-
-    for i, bubble in enumerate(bubbles):
-
-        angle = i * 2.39996
-
-        distance = (
-            20
-            + i * 48
-        )
-
-        bubble["x"] = (
-            width / 2
-            + math.cos(angle) * distance
-        )
-
-        bubble["y"] = (
-            height / 2
-            + math.sin(angle) * distance
-        )
-
-    # ------------------------------------------------
-    # BUBBLE PACKING
-    # ------------------------------------------------
-
-    for _ in range(700):
-
-        moved = False
-
-        for i in range(len(bubbles)):
-
-            a = bubbles[i]
-
-            for j in range(i + 1, len(bubbles)):
-
-                b = bubbles[j]
-
-                dx = (
-                    b["x"]
-                    - a["x"]
-                )
-
-                dy = (
-                    b["y"]
-                    - a["y"]
-                )
-
-                distance = math.sqrt(
-                    dx * dx
-                    + dy * dy
-                )
-
-                minimum_distance = (
-                    a["radius"]
-                    + b["radius"]
-                    + 7
-                )
-
-                if distance < minimum_distance:
-
-                    if distance == 0:
-
-                        dx = 1
-                        dy = 0
-                        distance = 1
-
-                    push = (
-                        minimum_distance
-                        - distance
-                    ) / 2
-
-                    dx /= distance
-                    dy /= distance
-
-                    a["x"] -= (
-                        dx * push
-                    )
-
-                    a["y"] -= (
-                        dy * push
-                    )
-
-                    b["x"] += (
-                        dx * push
-                    )
-
-                    b["y"] += (
-                        dy * push
-                    )
-
-                    moved = True
-
-        # ------------------------------------------------
-        # KEEP BUBBLES INSIDE CANVAS
-        # ------------------------------------------------
-
-        for bubble in bubbles:
-
-            r = bubble["radius"]
-
-            bubble["x"] = max(
-                r + 15,
-                min(
-                    width - r - 15,
-                    bubble["x"]
-                )
-            )
-
-            bubble["y"] = max(
-                r + 15,
-                min(
-                    height - r - 15,
-                    bubble["y"]
-                )
-            )
-
-        if not moved:
-            break
-
-    # ==================================================
-    # SVG
-    # ==================================================
-
-    svg = f'''<svg
-xmlns="http://www.w3.org/2000/svg"
-width="{width}"
-height="{height}"
-viewBox="0 0 {width} {height}">
-
-<rect
-width="100%"
-height="100%"
-fill="white"/>
-
-<style>
-
-.bubble {{
-    fill: #f0f0f0;
-    stroke: #d9d9d9;
-    stroke-width: 1;
-}}
-
-.topic {{
-    fill: #008000;
-    font-family: Arial, sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    text-anchor: middle;
-    dominant-baseline: middle;
-}}
-
-.count {{
-    fill: #008000;
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    text-anchor: middle;
-    dominant-baseline: middle;
-}}
-
-</style>
-'''
-
-    # ==================================================
-    # DRAW BUBBLES
-    # ==================================================
-
-    for bubble in bubbles:
-
-        x = bubble["x"]
-        y = bubble["y"]
-        r = bubble["radius"]
-
-        topic = bubble["topic"]
-        count = bubble["count"]
-
-        # ------------------------------------------------
-        # BREAK LONG TOPIC NAMES
-        # ------------------------------------------------
-
-        words = topic.split()
-
-        lines = []
-
-        current = ""
-
-        for word in words:
-
-            test = (
-                current
-                + " "
-                + word
-            ).strip()
-
-            if len(test) <= 15:
-
-                current = test
-
-            else:
-
-                if current:
-                    lines.append(current)
-
-                current = word
-
-        if current:
-            lines.append(current)
-
-        # ------------------------------------------------
-        # CIRCLE
-        # ------------------------------------------------
-
-        svg += f'''
-<circle
-class="bubble"
-cx="{x:.2f}"
-cy="{y:.2f}"
-r="{r:.2f}"/>
-'''
-
-        # ------------------------------------------------
-        # TOPIC NAME
-        # ------------------------------------------------
-
-        if len(lines) == 1:
-
-            topic_y = y - 8
-
-            svg += f'''
-<text
-class="topic"
-x="{x:.2f}"
-y="{topic_y:.2f}">
-{html.escape(lines[0])}
-</text>
-'''
-
-        else:
-
-            start_y = (
-                y
-                - (
-                    len(lines)
-                    * 8
-                )
-            )
-
-            for index, line in enumerate(lines):
-
-                svg += f'''
-<text
-class="topic"
-x="{x:.2f}"
-y="{start_y + index * 17:.2f}">
-{html.escape(line)}
-</text>
-'''
-
-        # ------------------------------------------------
-        # QUESTION COUNT
-        # ------------------------------------------------
-
-        svg += f'''
-<text
-class="count"
-x="{x:.2f}"
-y="{y + 20:.2f}">
-{count}
-</text>
-'''
-
-    # ------------------------------------------------
-    # CLOSE SVG
-    # ------------------------------------------------
-
-    svg += """
-</svg>
-"""
-
-    # ==================================================
-    # SAVE SVG
-    # ==================================================
-
-    with open(
-        svg_path,
-        "w",
-        encoding="utf-8"
-    ) as file:
-
-        file.write(svg)
-
-    print(
-        f"✓ Topic bubble chart generated: "
-        f"{svg_path}"
-    )
-
-
-# ==================================================
 # FIND ALL LEETCODE PROBLEM FOLDERS
 # ==================================================
 
@@ -512,8 +144,6 @@ problem_folders.sort()
 
 difficulty_count = Counter()
 
-topic_count = Counter()
-
 solved_problems = []
 
 failed_problems = []
@@ -532,8 +162,7 @@ for folder in problem_folders:
     if not slug:
 
         print(
-            f"⚠️ Could not find slug: "
-            f"{folder}"
+            f"⚠️ Could not find slug: {folder}"
         )
 
         failed_problems.append(folder)
@@ -547,8 +176,7 @@ for folder in problem_folders:
     if not info:
 
         print(
-            f"❌ Failed after 3 attempts: "
-            f"{slug}"
+            f"❌ Failed after 3 attempts: {slug}"
         )
 
         failed_problems.append(folder)
@@ -559,11 +187,6 @@ for folder in problem_folders:
 
     difficulty = info["difficulty"]
 
-    topics = [
-        tag["name"]
-        for tag in info["topicTags"]
-    ]
-
     solved_problems.append(
         title
     )
@@ -571,12 +194,6 @@ for folder in problem_folders:
     difficulty_count[
         difficulty
     ] += 1
-
-    for topic in topics:
-
-        topic_count[
-            topic
-        ] += 1
 
     print(
         f"✓ {title}"
@@ -602,8 +219,7 @@ if failed_problems:
     )
 
     print(
-        "\nThe following problems "
-        "could not be fetched:"
+        "\nThe following problems could not be fetched:"
     )
 
     for problem in failed_problems:
@@ -633,15 +249,6 @@ total_solved = len(
 
 
 # ==================================================
-# GENERATE TOPIC BUBBLES
-# ==================================================
-
-generate_topic_bubbles(
-    topic_count
-)
-
-
-# ==================================================
 # README DASHBOARD
 # ==================================================
 
@@ -656,10 +263,6 @@ dashboard = f"""### 🎯 Total Solved
 | 🟢 Easy | {difficulty_count['Easy']} |
 | 🟠 Medium | {difficulty_count['Medium']} |
 | 🔴 Hard | {difficulty_count['Hard']} |
-
-### 🧠 Topics
-
-![LeetCode Topics](assets/topic-bubbles.svg)
 
 """
 
@@ -767,6 +370,5 @@ print(
 )
 
 print(
-    "\nYour README now contains "
-    "the LeetCode-style topic bubbles! 🚀"
+    "\nYour README was updated successfully! 🚀"
 )

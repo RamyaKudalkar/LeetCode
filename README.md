@@ -14,18 +14,14 @@ solutions in C++
 
 ### 🎯 Total Solved
 
-**35 Problems**
+**60 Problems**
 
 ### 📈 Difficulty
 
 | Difficulty | Problems |
 |------------|----------:|
-| 🟢 Easy | 30 |
-| 🟠 Medium | 5 |
+| 🟢 Easy | 51 |
+| 🟠 Medium | 9 |
 | 🔴 Hard | 0 |
-
-### 🧠 Topics
-
-![LeetCode Topics](assets/topic-bubbles.svg)
 
 <!-- LEETCODE_PROGRESS_END -->
