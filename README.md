@@ -1,13 +1,3 @@
-# LeetCode
-🎯
-Documenting
-my DSA
-journey
-through
-LeetCode
-solutions in C++
-🏆
-
 ## 📊 LeetCode Progress
 
 <!-- LEETCODE_PROGRESS_START -->
