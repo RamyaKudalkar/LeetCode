@@ -4,13 +4,13 @@
 
 ### 🎯 Total Solved
 
-**60 Problems**
+**61 Problems**
 
 ### 📈 Difficulty
 
 | Difficulty | Problems |
 |------------|----------:|
-| 🟢 Easy | 51 |
+| 🟢 Easy | 52 |
 | 🟠 Medium | 9 |
 | 🔴 Hard | 0 |
 
